@@ -7,12 +7,22 @@
 	<category>bundled</category>
 	<category>content</category>
 	<category>widget</category>
-	<description>Adds admin blogging capabilities to Elgg.</description>
+	<description>Adds admin only blogging capabilities to Elgg.</description>
 	<website>http://elgg.org/</website>
 	<copyright>See COPYRIGHT.txt</copyright>
 	<license>GNU General Public License version 2</license>
 	<requires>
 		<type>elgg_release</type>
 		<version>1.9</version>
+	</requires>
+	<requires>
+		<type>plugin</type>
+		<name>blog</name>
+		<version>1.9</version>
+	</requires>
+	<requires>
+		<type>priority</type>
+		<priority>after</priority>
+		<plugin>blog</plugin>
 	</requires>
 </plugin_manifest>
