@@ -22,18 +22,10 @@ function admin_blog_init() {
 	// routing of urls
 	elgg_unregister_page_handler('blog', 'blog_page_handler');
 	elgg_register_page_handler('blog', 'admin_blog_page_handler');
-	
-	// unregister actions
-	$action_path = elgg_get_plugins_path() . 'blog/actions/blog';
-	elgg_unregister_action('blog/save', "$action_path/save.php");
-	elgg_unregister_action('blog/auto_save_revision', "$action_path/auto_save_revision.php");
-	elgg_unregister_action('blog/delete', "$action_path/delete.php");
-	
-	// register actions
-	$action_path = elgg_get_plugins_path() . 'admin_blog/actions/blog';
-	elgg_register_action('blog/save', "$action_path/save.php");
-	elgg_register_action('blog/auto_save_revision', "$action_path/auto_save_revision.php");
-	elgg_register_action('blog/delete', "$action_path/delete.php");
+
+	elgg_register_action('blog/save', elgg_get_config('pluginspath') .'blog/actions/blog/save.php', 'admin');
+	elgg_register_action('blog/auto_save_revision', elgg_get_config('pluginspath') .'blog/actions/blog/auto_save_revision.php', 'admin');
+	elgg_register_action('blog/delete', elgg_get_config('pluginspath') . 'blog/actions/blog/delete.php', 'admin');
 	
 }
 
