@@ -1,32 +1,39 @@
 <?php
-/**
- * Blogs
- *
- * @package Blog
- *
- * @todo
- * - Either drop support for "publish date" or duplicate more entity getter
- * functions to work with a non-standard time_created.
- * - Pingbacks
- * - Notifications
- * - River entry for posts saved as drafts and later published
- */
+
+namespace Admin\Blog;
+
+const PLUGIN_ID = 'admin_blog';
+
+require_once __DIR__ . '/lib/hooks.php';
  
-elgg_register_event_handler('init', 'system', 'admin_blog_init');
+elgg_register_event_handler('init', 'system', __NAMESPACE__ . '\\init');
 
 /**
  * Init admin_blog plugin.
  */
-function admin_blog_init() {
+function init() {
 
 	// routing of urls
 	elgg_unregister_page_handler('blog', 'blog_page_handler');
-	elgg_register_page_handler('blog', 'admin_blog_page_handler');
+	elgg_register_page_handler('blog', __NAMESPACE__ . '\\page_handler');
 
+	elgg_register_plugin_hook_handler('register', 'menu:owner_block', __NAMESPACE__ . '\\owner_block_menu');
+	
 	elgg_register_action('blog/save', elgg_get_config('pluginspath') .'blog/actions/blog/save.php', 'admin');
 	elgg_register_action('blog/auto_save_revision', elgg_get_config('pluginspath') .'blog/actions/blog/auto_save_revision.php', 'admin');
 	elgg_register_action('blog/delete', elgg_get_config('pluginspath') . 'blog/actions/blog/delete.php', 'admin');
 	
+	$group_blogs = (int) elgg_get_plugin_setting('group_blog', PLUGIN_ID);
+	$widget_contexts = array('profile', 'dashboard', 'index');
+	if (!$group_blogs) {
+		elgg_unextend_view('groups/tool_latest', 'blog/group_module');
+		remove_group_tool_option('blog');
+	} else {
+		$widget_contexts[] = 'group';
+	}
+	
+	elgg_unregister_widget_type('blog');
+	elgg_register_widget_type('blog', elgg_echo('blog'), elgg_echo('blog:widget:description'), $widget_contexts);
 }
 
 /**
@@ -49,7 +56,7 @@ function admin_blog_init() {
  * @param array $page
  * @return bool
  */
-function admin_blog_page_handler($page) {
+function page_handler($page) {
 
 	elgg_load_library('elgg:blog');
 
@@ -64,27 +71,19 @@ function admin_blog_page_handler($page) {
 	switch ($page_type) {
 		case 'owner':
 			$user = get_user_by_username($page[1]);
-			if (!$user) {
+			if (!$user || !$user->isAdmin()) {
 				forward('', '404');
 			}
 			$params = blog_get_page_content_list($user->guid);
 			if(!elgg_is_admin_logged_in()){
 				elgg_unregister_menu_item('title','add');
 			}
-			break;
-		case 'friends':
-			$user = get_user_by_username($page[1]);
-			if (!$user) {
-				forward('', '404');
-			}
-			$params = blog_get_page_content_friends($user->guid);
-			if(!elgg_is_admin_logged_in()){
-				elgg_unregister_menu_item('title','add');
-			}
+			
+			$params['filter'] = false; // no need for all/mine/friends anymore
 			break;
 		case 'archive':
 			$user = get_user_by_username($page[1]);
-			if (!$user) {
+			if (!$user || !$user->isAdmin()) {
 				forward('', '404');
 			}
 			$params = blog_get_page_content_archive($user->guid, $page[2], $page[3]);
@@ -101,6 +100,12 @@ function admin_blog_page_handler($page) {
 			$params = blog_get_page_content_edit($page_type, $page[1], $page[2]);
 			break;
 		case 'group':
+			$group_blogs = (int) elgg_get_plugin_setting('group_blog', PLUGIN_ID);
+			
+			if (!$group_blogs) {
+				forward('', '404');
+			}
+			
 			$group = get_entity($page[1]);
 			if (!elgg_instanceof($group, 'group')) {
 				forward('', '404');
@@ -119,6 +124,7 @@ function admin_blog_page_handler($page) {
 			if(!elgg_is_admin_logged_in()){
 				elgg_unregister_menu_item('title','add');
 			}
+			$params['filter'] = false;
 			break;
 		default:
 			return false;

@@ -4,9 +4,7 @@
 	<id>admin_blog</id>
 	<author>developers</author>
 	<version>1.9</version>
-	<category>bundled</category>
 	<category>content</category>
-	<category>widget</category>
 	<description>Adds admin only blogging capabilities to Elgg.</description>
 	<website>http://elgg.org/</website>
 	<copyright>See COPYRIGHT.txt</copyright>
